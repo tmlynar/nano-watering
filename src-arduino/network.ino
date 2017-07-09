@@ -194,13 +194,18 @@ void processGet (const char * data)
   Serial.print (" : ");
   Serial.println (param);
   String paramStr = String(param);
-  if (paramStr.startsWith("sw") && param[3] == '=' && isAlphaNumeric(param[4])) {
+  if (paramStr[0] = 's' && param[3] == '=' && isAlphaNumeric(param[4])) {
+    byte mode = paramStr[1] == 's' ? MODE_SEC : MODE_MIN;
     byte outputState = (byte) (param[4] - 48);
     int paramValue = String(param + 4).toInt();
     if (isDigit(param[2])) {
       byte output = (byte) (param[2] - 48);
       Serial.println (output);
       if (output < sizeof(outputs) / sizeof(OUTPUT_STRUCT)) {
+        if (outputs[output].mode != mode) {
+          outputs[output].mode = mode;
+          EEPROM.write(16 + output, mode);
+        }
         processOutput(output, paramValue);
       }
     }

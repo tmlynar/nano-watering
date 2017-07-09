@@ -6,21 +6,30 @@
 #define DEFAULT_VALUE_POS 8
 byte defaultValue = DEFAULT_VALUE;
 
+#define MODE_MIN 0
+#define MODE_SEC 1
+
 typedef struct {
   byte pin;
   byte value;
   long timestmap;
+  byte mode;
 } OUTPUT_STRUCT;
 
 OUTPUT_STRUCT outputs[] = {
-  {2, 0, 0}, 
-  {3, 0, 0}, 
-  {4, 0, 0}, 
-  {5, 0, 0}, 
-  {6, 0, 0}, 
-  {7, 0, 0}, 
-  {9, 0, 0}, 
-  {10, 0, 0}
+  {2, 0, 0, MODE_MIN}, 
+  {3, 0, 0, MODE_MIN}, 
+  {4, 0, 0, MODE_MIN}, 
+  {5, 0, 0, MODE_MIN}, 
+  {6, 0, 0, MODE_MIN}, 
+  {7, 0, 0, MODE_MIN}, 
+  {9, 0, 0, MODE_SEC}, 
+  {10, 0, 0, MODE_SEC}
+};
+
+int MODES[] = {
+  60,
+  1
 };
 
 OneButton inputs[] {
@@ -51,6 +60,10 @@ void setup(){
     if (value != 0xFF) {
       outputs[i].value = value;
       outputs[i].timestmap = millis() / 1000;
+      EEPROM.get(16 + i, value);
+      if (value == MODE_SEC || value == MODE_MIN) {
+        outputs[i].mode = value;
+      }
     }
   }
 
@@ -144,7 +157,7 @@ void loop () {
       OUTPUT_STRUCT output = outputs[i];
       byte targetState = HIGH;
       if (output.value > 0) {
-        if ((long) (t/ 1000) - output.timestmap > 60 * output.value)
+        if ((long) (t/ 1000) - output.timestmap > MODES[output.mode] * output.value)
         {
           outputs[i].value = 0;
           EEPROM.write(i, 0);
