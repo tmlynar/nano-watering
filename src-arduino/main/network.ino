@@ -13,9 +13,9 @@ const char pageA[] PROGMEM =
 
 #if STATIC
 // ethernet interface ip address
-static byte myip[] = { 192,168,1,111 };
+static byte myip[] = { 192,168,66,248 };
 // gateway ip address
-static byte gwip[] = { 192,168,1,1 };
+static byte gwip[] = { 192,168,66,1 };
 #endif
 
 // ethernet mac address - must be unique on your network
@@ -107,7 +107,7 @@ void networkLoop() {
   }
   
   // ping a remote server once every few seconds (10 secs)
-  if (micros() - timer >= 10*1000000) {
+  if (micros() - timer >= 30*1000000) {
     ether.printIp("Pinging: ", ether.hisip);
     timer = micros();
     ether.clientIcmpRequest(ether.hisip);
@@ -151,7 +151,7 @@ void sendOutput(byte index) {
     bfill = ether.tcpOffset();
     byte value = outputs[index].value;
     if (value > 0) {
-      long t = (long) 60 * value - (millis() / 1000 - outputs[index].timestmap);
+      long t = (long) MODES[outputs[index].mode] * value - (millis() / 1000 - outputs[index].timestmap);
       word h = t / 3600;
       byte m = (t / 60) % 60;
       byte s = t % 60;

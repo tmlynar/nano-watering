@@ -12,7 +12,7 @@ byte defaultValue = DEFAULT_VALUE;
 typedef struct {
   byte pin;
   byte value;
-  long timestmap;
+  uint32_t timestmap;
   byte mode;
 } OUTPUT_STRUCT;
 
@@ -59,7 +59,7 @@ void setup(){
     pinMode(outputs[i].pin, OUTPUT);
     if (value != 0xFF) {
       outputs[i].value = value;
-      outputs[i].timestmap = millis() / 1000;
+      outputs[i].timestmap = (uint32_t) millis() / 1000;
       EEPROM.get(16 + i, value);
       if (value == MODE_SEC || value == MODE_MIN) {
         outputs[i].mode = value;
@@ -143,21 +143,21 @@ void button4DoubleClickFunction() {
   etherInit();
 }
 
-unsigned long lastT = 0;
-unsigned long lastLoopMills = 0;
+uint32_t lastT = 0;
+uint32_t lastLoopMills = 0;
 
 void loop () {
   networkLoop();
 
   // outputs
-  unsigned long t = millis();
+  uint32_t t = millis();
   if (t - lastT >= 250) {
     lastT = t;
     for (byte i = 0; i < sizeof(outputs) / sizeof(OUTPUT_STRUCT); i++) {
       OUTPUT_STRUCT output = outputs[i];
       byte targetState = HIGH;
       if (output.value > 0) {
-        if ((long) (t/ 1000) - output.timestmap > MODES[output.mode] * output.value)
+        if ((uint32_t) (t/ 1000) - output.timestmap > MODES[output.mode] * output.value)
         {
           outputs[i].value = 0;
           EEPROM.write(i, 0);
@@ -173,7 +173,7 @@ void loop () {
       }
     }
   }
-  if ((millis() - lastLoopMills) > 10) {
+  if (((uint32_t) millis() - lastLoopMills) > 10) {
     for (byte i = 0; i < sizeof(inputs) / sizeof(OneButton); i++){
       inputs[i].tick();
     }
@@ -186,13 +186,12 @@ void processOutput(byte index, int value) {
       EEPROM.write(index, value);
   }
   if (value == 0) {
-    outputs[index].timestmap = (long) 0;
+    outputs[index].timestmap = (uint32_t) 0;
     outputs[index].value = (byte) 0;
   }
   else {
-    outputs[index].timestmap = (long) millis() / 1000;
+    outputs[index].timestmap = (uint32_t) millis() / 1000;
     outputs[index].value = value;
   }
   Serial.print ("processOutput[");Serial.print (index);Serial.print ("]=");Serial.print (value); Serial.print (" "); Serial.print (" "); Serial.println (outputs[index].value);
 }
-
